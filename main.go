@@ -71,13 +71,14 @@ func ToJSON(content string) RegionalJSON {
 }
 
 func main() {
-	source := flag.String("source", "web", "Load data from the web or a local file")
+	countryCode := flag.String("country", "gb", "The countries data to load. Defaults to GB")
 	dataFile := flag.String("data", "example.json", "The filename to load data from")
+	source := flag.String("source", "web", "Load data from the web or a local file")
 	summariseOutput := flag.Bool("summary", false, "Summarise the data for this country")
 
 	flag.Parse()
 
-	config := RegionalConfig{"https://stat.ripe.net/data/country-resource-list/data.json?v4_format=prefix;resource", "gb"}
+	config := RegionalConfig{"https://stat.ripe.net/data/country-resource-list/data.json?v4_format=prefix;resource", *countryCode}
 
 	var content string
 	if *source == "file" {
