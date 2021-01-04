@@ -36,6 +36,7 @@ type RegionalJSONData struct {
 	Resources struct {
 		Asn  []string `json:"asn"`
 		Ipv4 []string `json:"ipv4"`
+		Ipv6 []string `json:"ipv6"`
 	} `json:"resources"`
 }
 
@@ -58,7 +59,7 @@ func readWeb(config RegionalConfig) string {
 	body, err := ioutil.ReadAll(resp.Body)
 	content := string(body)
 
-	return string(content)
+	return content
 }
 
 func ToJSON(content string) RegionalJSON {
@@ -72,7 +73,10 @@ func ToJSON(content string) RegionalJSON {
 func main() {
 	source := flag.String("source", "web", "Load data from the web or a local file")
 	dataFile := flag.String("data", "example.json", "The filename to load data from")
+	summariseOutput := flag.Bool("summary", false, "Summarise the data for this country")
+
 	flag.Parse()
+
 	config := RegionalConfig{"https://stat.ripe.net/data/country-resource-list/data.json?v4_format=prefix;resource", "gb"}
 
 	var content string
@@ -84,12 +88,21 @@ func main() {
 		log.Fatal(fmt.Sprintf("Unrecognised source %s\n", *source))
 	}
 
-	json_content := ToJSON(content)
+	jsonContent := ToJSON(content)
 	//fmt.Printf("Build %s\n", json_content.BuildVersion)
 	//fmt.Printf("QueryTime %s\n", json_content.Data.QueryTime)
 	//fmt.Printf("IPv4 Addresses %s\n", json_content.Data.Resources.Ipv4[1])
 
-	for _, ip_address := range json_content.Data.Resources.Ipv4 {
-		fmt.Println(ip_address)
+	if *summariseOutput {
+		fmt.Printf("Region %s has %d ASNs %d IPv4 Addresses and %d IPv6 Addresses\n",
+			config.country,
+			len(jsonContent.Data.Resources.Asn),
+			len(jsonContent.Data.Resources.Ipv4),
+			len(jsonContent.Data.Resources.Ipv6),
+		)
+	} else {
+		for _, ipAddress := range jsonContent.Data.Resources.Ipv4 {
+			fmt.Println(ipAddress)
+		}
 	}
 }
