@@ -73,6 +73,8 @@ func ToJSON(content string) RegionalJSON {
 func main() {
 	countryCode := flag.String("country", "gb", "The countries data to load. Defaults to GB")
 	dataFile := flag.String("data", "example.json", "The filename to load data from")
+	ipset := flag.Bool("ipset", false, "Use the ipset output format")
+	ipsetName := flag.String("ipset-name", "regional-ip-addresses", "The ipset name to create commands for")
 	source := flag.String("source", "web", "Load data from the web or a local file")
 	summariseOutput := flag.Bool("summary", false, "Summarise the data for this country")
 
@@ -101,6 +103,10 @@ func main() {
 			len(jsonContent.Data.Resources.Ipv4),
 			len(jsonContent.Data.Resources.Ipv6),
 		)
+	} else if *ipset {
+		for _, ipAddress := range jsonContent.Data.Resources.Ipv4 {
+			fmt.Printf("ipset -A %s %s\n", *ipsetName, ipAddress)
+		}
 	} else {
 		for _, ipAddress := range jsonContent.Data.Resources.Ipv4 {
 			fmt.Println(ipAddress)
