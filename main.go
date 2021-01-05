@@ -26,7 +26,7 @@ type RegionalJSON struct {
 	SeeAlso        []interface{}    `json:"see_also"`
 	ServerID       string           `json:"server_id"`
 	Status         string           `json:"status"`
-	StatusCode     int64            `json:"status_code"`
+	StatusCode     int64            `json:"status_code"` // TODO: Check this
 	Time           string           `json:"time"`
 	Version        string           `json:"version"`
 }
@@ -74,6 +74,7 @@ func main() {
 	countryCode := flag.String("country", "gb", "The countries data to load. Defaults to GB")
 	dataFile := flag.String("data", "example.json", "The filename to load data from")
 	ipset := flag.Bool("ipset", false, "Use the ipset output format")
+	ipsetHeader := flag.Bool("ipset-header", false, "Output the 'ipset create' command")
 	ipsetName := flag.String("ipset-name", "regional-ip-addresses", "The ipset name to create commands for")
 	source := flag.String("source", "web", "Load data from the web or a local file")
 	summariseOutput := flag.Bool("summary", false, "Summarise the data for this country")
@@ -117,6 +118,9 @@ func main() {
 			len(jsonContent.Data.Resources.Ipv6),
 		)
 	} else if *ipset {
+		if *ipsetHeader {
+			fmt.Printf("ipset create %s hash:net\n", *ipsetName)
+		}
 		for _, ipAddress := range ipAddresses {
 			fmt.Printf("ipset -A %s %s\n", *ipsetName, ipAddress)
 		}
