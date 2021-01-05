@@ -77,6 +77,7 @@ func main() {
 	ipsetName := flag.String("ipset-name", "regional-ip-addresses", "The ipset name to create commands for")
 	source := flag.String("source", "web", "Load data from the web or a local file")
 	summariseOutput := flag.Bool("summary", false, "Summarise the data for this country")
+	version := flag.String("ip-version", "4", "IP Address version to retrieve - <4 | 6 | both>")
 
 	flag.Parse()
 
@@ -96,6 +97,18 @@ func main() {
 	//fmt.Printf("QueryTime %s\n", json_content.Data.QueryTime)
 	//fmt.Printf("IPv4 Addresses %s\n", json_content.Data.Resources.Ipv4[1])
 
+	var ipAddresses []string
+	if *version == "4" {
+		ipAddresses = append(ipAddresses, jsonContent.Data.Resources.Ipv4...)
+	} else if *version == "6" {
+		ipAddresses = append(ipAddresses, jsonContent.Data.Resources.Ipv6...)
+	} else if *version == "both" {
+		ipAddresses = append(ipAddresses, jsonContent.Data.Resources.Ipv4...)
+		ipAddresses = append(ipAddresses, jsonContent.Data.Resources.Ipv6...)
+	} else {
+		log.Fatal(fmt.Sprintf("Unrecognised version %s\n", *version))
+	}
+
 	if *summariseOutput {
 		fmt.Printf("Region %s has %d ASNs %d IPv4 Addresses and %d IPv6 Addresses\n",
 			config.country,
@@ -104,11 +117,11 @@ func main() {
 			len(jsonContent.Data.Resources.Ipv6),
 		)
 	} else if *ipset {
-		for _, ipAddress := range jsonContent.Data.Resources.Ipv4 {
+		for _, ipAddress := range ipAddresses {
 			fmt.Printf("ipset -A %s %s\n", *ipsetName, ipAddress)
 		}
 	} else {
-		for _, ipAddress := range jsonContent.Data.Resources.Ipv4 {
+		for _, ipAddress := range ipAddresses {
 			fmt.Println(ipAddress)
 		}
 	}
